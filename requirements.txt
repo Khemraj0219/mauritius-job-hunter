@@ -12,3 +12,5 @@ python-multipart     # for FastAPI file uploads
 # Optional but powerful for your research edge
 langchain             # if you want to chain skills later
 
+streamlit
+requests
