@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
-import requests
-from bs4 import BeautifulSoup
 
 app = FastAPI(title="Mauritius Job Hunter API")
 
@@ -14,7 +12,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ==================== SAMPLE JOBS (Fallback) ====================
+# Sample Jobs (we'll add real scraping later)
 SAMPLE_JOBS = [
     {
         "job_id": "PSC-2026-7791",
@@ -26,57 +24,31 @@ SAMPLE_JOBS = [
         "why_matches": "Good match for your MSc Computing + IT background",
         "link": "https://psc.govmu.org/psc/?p=7791",
         "source": "PSC"
+    },
+    {
+        "job_id": "POLY-2026-AI01",
+        "title": "Part-Time Lecturer – AI & Computer Science",
+        "organization": "Polytechnics Mauritius",
+        "deadline": "Rolling",
+        "match_score": 92,
+        "match_level": "Strong",
+        "why_matches": "Excellent fit! Your MSc AI/ML + research publications are perfect",
+        "link": "https://www.poly.ac.mu/",
+        "source": "Polytechnics Mauritius"
     }
 ]
-
-# ==================== REAL SCRAPING FUNCTION ====================
-def scrape_psc_jobs():
-    """Scrape current jobs from PSC Mauritius"""
-    jobs = []
-    try:
-        url = "https://psc.govmu.org/"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        # This is a basic scraper - PSC site structure may change
-        # We'll improve it in next versions
-        for item in soup.find_all("a", href=True):
-            text = item.get_text(strip=True)
-            if "Vacancy" in text or "Post" in text or "Lecturer" in text:
-                jobs.append({
-                    "job_id": f"PSC-{len(jobs)+1}",
-                    "title": text[:100],
-                    "organization": "Public Service Commission",
-                    "deadline": "Check website",
-                    "match_score": 75,
-                    "match_level": "Good",
-                    "why_matches": "Matches your teaching + technical background",
-                    "link": "https://psc.govmu.org/" + item.get("href", ""),
-                    "source": "PSC (Scraped)"
-                })
-        return jobs[:5]  # Limit to 5 jobs for now
-    except Exception as e:
-        print(f"Scraping error: {e}")
-        return []
-
 
 @app.get("/")
 def root():
     return {"message": "Mauritius Job Hunter API is running", "owner": "Khemraj Dhunput"}
 
-
 @app.get("/jobs/matches")
 def get_job_matches():
-    scraped_jobs = scrape_psc_jobs()
-    all_jobs = scraped_jobs + SAMPLE_JOBS
-    
     return {
         "scan_time": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "total_matches": len(all_jobs),
-        "jobs": all_jobs
+        "total_matches": len(SAMPLE_JOBS),
+        "jobs": SAMPLE_JOBS
     }
-
 
 @app.post("/jobs/request-approval/{job_id}")
 def request_approval(job_id: str):
