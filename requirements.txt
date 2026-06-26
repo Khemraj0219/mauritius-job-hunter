@@ -1,5 +1,12 @@
+# Suggested additions to requirements.txt
 streamlit
 fastapi
-uvicorn
+uvicorn[standard]
 pandas
+requests
+beautifulsoup4
+python-dotenv
+openai  # or groq, together, etc. for LLM power
+pypdf2   # for parsing job PDFs
+# + whatever you use for your mammography/education tools
 
