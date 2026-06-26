@@ -5,11 +5,13 @@ from datetime import datetime
 app = FastAPI(title="Mauritius Job Hunter API")
 
 app.add_middleware(
+    app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://mauritius-job-hunter.streamlit.app"], # Your specific app URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
 )
 
 SAMPLE_JOBS = [
