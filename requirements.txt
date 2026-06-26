@@ -1,4 +1,4 @@
-# Suggested additions to requirements.txt
+# mauritius-job-hunter/requirements.txt
 streamlit
 fastapi
 uvicorn[standard]
@@ -6,7 +6,9 @@ pandas
 requests
 beautifulsoup4
 python-dotenv
-openai  # or groq, together, etc. for LLM power
-pypdf2   # for parsing job PDFs
-# + whatever you use for your mammography/education tools
+openai>=1.0.0        # or groq / together for faster/cheaper calls
+pypdf2
+python-multipart     # for FastAPI file uploads
+# Optional but powerful for your research edge
+langchain             # if you want to chain skills later
 
