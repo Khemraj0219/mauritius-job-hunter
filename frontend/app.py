@@ -1,5 +1,10 @@
 import streamlit as st
 import requests
+import sys
+from pathlib import Path
+
+# Add shared folder to path (for local testing)
+sys.path.append(str(Path(__file__).parent.parent))
 
 st.set_page_config(
     page_title="Mauritius Job Hunter | Khemraj Dhunput",
@@ -12,7 +17,7 @@ st.title("🎯 Mauritius Job Hunter Agent")
 st.markdown("**Personal AI Assistant for Khemraj Dhunput** — Targeting Lecturer, AI & Computing Roles in Mauritius")
 
 # Profile Summary
-with st.expander("👤 Your Profile Summary", expanded=False):
+with st.expander("👤 Your Profile Summary", expanded=True):
     st.markdown("""
     - **MSc Artificial Intelligence with Machine Learning** (Distinction, 2025)
     - **MSc Computing** (2014)
@@ -29,23 +34,23 @@ with st.sidebar:
         st.rerun()
     st.caption("Backend Status: Connected")
 
-
-# Change this to your new cloud URL
-BACKEND_URL = "https://your-deployed-backend-url.com"
+# Backend URL - Change after deployment
+BACKEND_URL = st.secrets.get("BACKEND_URL", "http://127.0.0.1:8000")
 
 # Fetch jobs from backend
 try:
-    response = requests.get(f"{BACKEND_URL}/jobs/matches", timeout=5)
+    response = requests.get(f"{BACKEND_URL}/jobs/matches", timeout=8)
+    response.raise_for_status()
     data = response.json()
     jobs = data.get("jobs", [])
-except:
-    st.error("❌ Cannot connect to backend. Please make sure FastAPI is running.")
+except Exception as e:
+    st.error(f"❌ Cannot connect to backend. Error: {e}")
     jobs = []
 
 # Quick Stats
 col1, col2, col3 = st.columns(3)
 col1.metric("Total Matches", len(jobs) if jobs else 0)
-col2.metric("Strong Matches", len([j for j in jobs if j["match_level"] == "Strong"]) if jobs else 0)
+col2.metric("Strong Matches", len([j for j in jobs if j.get("match_level") == "Strong"]) if jobs else 0)
 col3.metric("Last Updated", data.get("scan_time", "N/A") if 'data' in locals() else "N/A")
 
 st.header("📋 Recommended Job Matches")
@@ -54,30 +59,30 @@ if jobs:
     for job in jobs:
         with st.container(border=True):
             col1, col2 = st.columns([3.2, 1.3])
-            
+           
             with col1:
                 st.subheader(job["title"])
                 st.write(f"**{job['organization']}**")
-                st.write(f"⏰ **Deadline:** `{job['deadline']}`")
-                st.write(f"**Why it matches you:** {job['why_matches']}")
-                st.markdown(f"[🔗 View Job Posting]({job['link']})")
-            
+                st.write(f"⏰ **Deadline:** `{job.get('deadline', 'N/A')}`")
+                st.write(f"**Why it matches you:** {job.get('why_matches', '')}")
+                st.markdown(f"[🔗 View Job Posting]({job.get('link', '#')})")
+           
             with col2:
-                if job["match_level"] == "Strong":
-                    st.success(f"🔥 {job['match_level']}\n**Score: {job['match_score']}%**")
+                level = job.get("match_level", "Good")
+                score = job.get("match_score", 80)
+                if level == "Strong":
+                    st.success(f"🔥 {level}\n**Score: {score}%**")
                 else:
-                    st.info(f"⭐ {job['match_level']}\n**Score: {job['match_score']}%**")
-                
-                if st.button("✅ Request Approval", key=job["job_id"], use_container_width=True):
+                    st.info(f"⭐ {level}\n**Score: {score}%**")
+               
+                if st.button("✅ Request Approval", key=job.get("job_id", "btn"), use_container_width=True):
                     try:
                         res = requests.post(f"{BACKEND_URL}/jobs/request-approval/{job['job_id']}")
-                        st.success(res.json().get("message"))
+                        st.success(res.json().get("message", "Request sent!"))
                     except:
-                        st.error("Failed to send request. Try again.")
+                        st.error("Failed to send request. Backend may be offline.")
 else:
     st.warning("No matching jobs found at the moment.")
 
 st.divider()
-
-# Footer
 st.caption("Hybrid System: FastAPI Backend + Streamlit Frontend | Ready for future Agentic upgrades & Android app")
