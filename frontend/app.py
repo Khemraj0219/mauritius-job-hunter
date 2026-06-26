@@ -29,7 +29,9 @@ with st.sidebar:
         st.rerun()
     st.caption("Backend Status: Connected")
 
-BACKEND_URL = "http://127.0.0.1:8000"
+
+# Change this to your new cloud URL
+BACKEND_URL = "https://your-deployed-backend-url.com"
 
 # Fetch jobs from backend
 try:
